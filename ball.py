@@ -16,5 +16,12 @@ class Ball(arcade.Sprite):
             self.center_x = self.center_x + self.change_x * delta_time
             self.center_y = self.center_y + self.change_y * delta_time
 
-    def stuck_to(self, sprite):
-        self.stuck_on = (sprite, self.center_x - sprite.left)
+    def stick(self, sprite):
+        diff = 0
+        if sprite:
+            diff = self.center_x - sprite.left
+        self.stuck_on = (sprite, diff)
+
+    def shoot(self):
+        self.stick(None)
+        self.change_y = 300
