@@ -1,8 +1,10 @@
 import arcade
 
-from constants import SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE, SCALING
+from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
+                       SCALING, WALL_WIDTH)
 from player import Player
 from ball import Ball
+from block import Block
 
 
 class BlockBreaker(arcade.Window):
@@ -19,6 +21,7 @@ class BlockBreaker(arcade.Window):
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
         self.top_wall_sprites = arcade.SpriteList()
+        self.blocks = arcade.SpriteList()
         self.all_sprites = arcade.SpriteList()
 
         # Set up the walls
@@ -27,17 +30,29 @@ class BlockBreaker(arcade.Window):
             new_left_wall.left = 0
             new_left_wall.bottom = i * 100
             self.side_wall_sprites.append(new_left_wall)
+            self.all_sprites.append(new_left_wall)
 
             new_right_wall = arcade.Sprite('images/wall_right.png', SCALING)
             new_right_wall.right = SCREEN_WIDTH
             new_right_wall.bottom = i * 100
             self.side_wall_sprites.append(new_right_wall)
+            self.all_sprites.append(new_right_wall)
 
         for i in range(6):
             new_top_wall = arcade.Sprite('images/wall_top.png', SCALING)
             new_top_wall.top = SCREEN_HEIGHT
             new_top_wall.left = i * 100
             self.top_wall_sprites.append(new_top_wall)
+            self.all_sprites.append(new_top_wall)
+
+        # Set up one line of blocks
+        for i in range(0, 14):
+            block = Block('images/block_gray.png',
+                          SCALING,
+                          WALL_WIDTH + 21 + (Block.BLOCK_WIDTH * i),
+                          SCREEN_HEIGHT / 2)
+            self.blocks.append(block)
+            self.all_sprites.append(block)
 
         # Set up the player
         self.player = Player('images/player.png', SCALING)
@@ -88,6 +103,9 @@ class BlockBreaker(arcade.Window):
         """Update the positions and statuses of all game objects.
 
         If paused, do nothing
+        Check ball collisions with blocks, walls, and player. Update
+        ball vector on each collision. Remove blocks when collision
+        detected with ball.
 
         Arguments:
             delta_time {float} -- Time since the last update
@@ -98,6 +116,16 @@ class BlockBreaker(arcade.Window):
         self.player.on_update(delta_time)
         self.ball.on_update(delta_time)
 
+        # If ball collides with a block, determine if block was hit on side
+        # or top/bottom. Remove block from sprite lists
+        blocks = self.ball.collides_with_list(self.blocks)
+        if blocks:
+            if blocks[0].side_collision(self.ball):
+                self.ball.change_x = self.ball.change_x * -1
+            else:
+                self.ball.change_y = self.ball.change_y * -1
+            blocks[0].remove_from_sprite_lists()
+
         if self.ball.collides_with_list(self.side_wall_sprites):
             self.ball.change_x = self.ball.change_x * -1
 
@@ -106,9 +134,13 @@ class BlockBreaker(arcade.Window):
 
         if self.ball.collides_with_sprite(self.player):
             self.ball.change_y = self.ball.change_y * -1
+            # If ball is moving exactly 90 degrees to player, force angle
+            # relative to center of player
             if self.ball.change_x == 0:
-                self.ball.change_x = (self.ball.center_x - self.player.center_x) * 5
+                collision_distance = self.ball.center_x - self.player.center_x
+                self.ball.change_x = (collision_distance) * 5
 
+        # If ball passes drops below player and screen, setup from beginning
         if self.ball.top <= 0:
             self.setup()
 
@@ -117,6 +149,7 @@ class BlockBreaker(arcade.Window):
         arcade.start_render()  # Needs to be called before drawing
         self.top_wall_sprites.draw()
         self.side_wall_sprites.draw()
+        self.blocks.draw()
         self.player.draw()
         self.ball.draw()
 
