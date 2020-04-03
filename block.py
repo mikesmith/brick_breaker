@@ -4,14 +4,32 @@ import arcade
 class Block(arcade.Sprite):
 
     BLOCK_WIDTH = 40
-    BLOCK_HEIGHT = 15
+    BLOCK_HEIGHT = 20
 
-    def __init__(self, filename, scale, x, y):
+    clrs = ['white',
+            'orange',
+            'light_blue',
+            'green',
+            'red',
+            'blue',
+            'pink',
+            'yellow',
+            'silver',
+            'gold']
+    hit_points = 1
+
+    def __init__(self, type, scale, x, y):
         """Initialize the Block sprite."""
-        super().__init__(filename, scale)
+        super().__init__(f'images/block_{self.clrs[type]}.png', scale)
 
+        self.type = type
         self.left = x
         self.top = y
+
+        if self.type == 8:
+            texture = arcade.load_texture('images/block_silver_broken.png')
+            self.append_texture(texture)
+            self.hit_points = 2
 
     def side_collision(self, ball):
         """Determine if ball is near the block's left or right sides.
@@ -28,3 +46,13 @@ class Block(arcade.Sprite):
               and ball.center_y <= self.top):
             return True
         return False
+
+    def hit(self):
+        """Reduce hit points of block by 1.
+
+        A silver block will switch to a broken texture with 1 hit point left
+        """
+        self.hit_points -= 1
+        if self.type == 8 and self.hit_points <= 1:
+            self.set_texture(1)
+        return self.hit_points

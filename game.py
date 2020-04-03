@@ -71,8 +71,8 @@ class BlockBreaker(arcade.Window):
     def build_level(self, map_array):
         for i, row in enumerate(map_array):
             for j, type in enumerate(row):
-                if type == '1':
-                    block = Block('images/block_gray.png',
+                if type != '-':
+                    block = Block(int(type),
                                   SCALING,
                                   WALL_WIDTH + (Block.BLOCK_WIDTH * j),
                                   SCREEN_HEIGHT - 40 - (Block.BLOCK_HEIGHT * i))
@@ -138,7 +138,9 @@ class BlockBreaker(arcade.Window):
                 self.ball.change_x = self.ball.change_x * -1
             else:
                 self.ball.change_y = self.ball.change_y * -1
-            blocks[0].remove_from_sprite_lists()
+            blocks[0].hit()
+            if blocks[0].hit_points == 0:
+                blocks[0].remove_from_sprite_lists()
 
         if self.ball.collides_with_list(self.side_wall_sprites):
             self.ball.change_x = self.ball.change_x * -1
