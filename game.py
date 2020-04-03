@@ -45,14 +45,7 @@ class BlockBreaker(arcade.Window):
             self.top_wall_sprites.append(new_top_wall)
             self.all_sprites.append(new_top_wall)
 
-        # Set up one line of blocks
-        for i in range(0, 14):
-            block = Block('images/block_gray.png',
-                          SCALING,
-                          WALL_WIDTH + 21 + (Block.BLOCK_WIDTH * i),
-                          SCREEN_HEIGHT / 2)
-            self.blocks.append(block)
-            self.all_sprites.append(block)
+        self.build_level(self.get_level(1))
 
         # Set up the player
         self.player = Player('images/player.png', SCALING)
@@ -64,6 +57,27 @@ class BlockBreaker(arcade.Window):
         self.ball.center_x = self.player.center_x
         self.ball.stick(self.player)
         self.all_sprites.append(self.ball)
+
+    def get_level(self, level):
+        filename = f'levels/level_{level}.csv'
+        with open(filename) as map_file:
+            map_array = []
+            for line in map_file:
+                line = line.strip()
+                map_row = line.split(',')
+                map_array.append(map_row)
+        return map_array
+
+    def build_level(self, map_array):
+        for i, row in enumerate(map_array):
+            for j, type in enumerate(row):
+                if type == '1':
+                    block = Block('images/block_gray.png',
+                                  SCALING,
+                                  WALL_WIDTH + (Block.BLOCK_WIDTH * j),
+                                  SCREEN_HEIGHT - 40 - (Block.BLOCK_HEIGHT * i))
+                    self.blocks.append(block)
+                    self.all_sprites.append(block)
 
     def on_key_press(self, symbol: int, modifiers: int):
         """Handle user keyboard input.
@@ -140,7 +154,7 @@ class BlockBreaker(arcade.Window):
                 collision_distance = self.ball.center_x - self.player.center_x
                 self.ball.change_x = (collision_distance) * 5
 
-        # If ball passes drops below player and screen, setup from beginning
+        # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
             self.setup()
 

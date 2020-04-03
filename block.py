@@ -4,13 +4,14 @@ import arcade
 class Block(arcade.Sprite):
 
     BLOCK_WIDTH = 40
+    BLOCK_HEIGHT = 15
 
     def __init__(self, filename, scale, x, y):
         """Initialize the Block sprite."""
         super().__init__(filename, scale)
 
-        self.center_x = x
-        self.center_y = y
+        self.left = x
+        self.top = y
 
     def side_collision(self, ball):
         """Determine if ball is near the block's left or right sides.
