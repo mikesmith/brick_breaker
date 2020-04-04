@@ -27,10 +27,12 @@ class BlockBreaker(arcade.Window):
         # Initialize level
         self.level = level
 
-        # Initialize collision check counter
+        # Initialize collision check counters
         # Prevents consecutive collisions within several frames between
-        # player and ball
-        self.collision_counter = 0
+        # player, ball and walls
+        self.player_collision_counter = 0
+        self.top_wall_collision_counter = 0
+        self.side_wall_collision_counter = 0
 
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
@@ -141,8 +143,16 @@ class BlockBreaker(arcade.Window):
         if self.pause:
             return
 
-        if self.collision_counter > 0:
-            self.collision_counter -= 1
+        # Decrement collision counters
+        # Counters prevent consecutive bounces within 20 frames
+        if self.player_collision_counter > 0:
+            self.player_collision_counter -= 1
+
+        if self.top_wall_collision_counter > 0:
+            self.top_wall_collision_counter -= 1
+
+        if self.side_wall_collision_counter > 0:
+            self.side_wall_collision_counter -= 1
 
         self.player.on_update(delta_time)
         self.ball.on_update(delta_time)
@@ -163,14 +173,20 @@ class BlockBreaker(arcade.Window):
                 if self.level_completed():
                     self.setup(self.level + 1)
 
-        if self.ball.collides_with_list(self.side_wall_sprites):
+        if (self.ball.collides_with_list(self.side_wall_sprites)
+                and self.side_wall_collision_counter == 0):
             self.ball.change_x = self.ball.change_x * -1
+            self.side_wall_collision_counter = 20
 
-        if self.ball.collides_with_list(self.top_wall_sprites):
+        if (self.ball.collides_with_list(self.top_wall_sprites)
+                and self.top_wall_collision_counter == 0):
             self.ball.change_y = self.ball.change_y * -1
+            self.top_wall_collision_counter = 20
 
-        if self.ball.collides_with_sprite(self.player) and self.collision_counter == 0:
-            self.collision_counter = 20
+        if (self.ball.collides_with_sprite(self.player)
+                and self.player_collision_counter == 0):
+
+            self.player_collision_counter = 20
             v = Vector(x=self.ball.change_x, y=self.ball.change_y)
             location = self.player.collision_location(self.ball)
             normal = Vector(0, 1)
