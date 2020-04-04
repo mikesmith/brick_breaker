@@ -16,6 +16,9 @@ class BlockBreaker(arcade.Window):
         """Initialize the game."""
         super().__init__(width, height, title)
 
+        # Initialize score
+        self.score = 0
+
     def setup(self, level):
         """Get the game ready to play."""
         arcade.set_background_color(arcade.color.GRAY)
@@ -23,9 +26,6 @@ class BlockBreaker(arcade.Window):
 
         # Initialize level
         self.level = level
-
-        # Initialize score
-        self.score = 0
 
         # Initialize collision check counter
         # Prevents consecutive collisions within several frames between
@@ -160,6 +160,8 @@ class BlockBreaker(arcade.Window):
             if blocks[0].hit_points == 0:
                 self.score += Block.clrs[blocks[0].type][1]
                 blocks[0].remove_from_sprite_lists()
+                if self.level_completed():
+                    self.setup(self.level + 1)
 
         if self.ball.collides_with_list(self.side_wall_sprites):
             self.ball.change_x = self.ball.change_x * -1
@@ -198,6 +200,14 @@ class BlockBreaker(arcade.Window):
         new_vector = Vector(x=v.x - z.x, y=v.y - z.y)
         return new_vector
 
+    def level_completed(self):
+        if len(self.blocks) == 0:
+            return True
+        for block in self.blocks:
+            if block.type != 9:
+                return False
+        return True
+
     def on_draw(self):
         """Draw all game objects."""
         arcade.start_render()  # Needs to be called before drawing
@@ -209,12 +219,16 @@ class BlockBreaker(arcade.Window):
 
         # Display score
         output = f'Score: {self.score}'
-        arcade.draw_text(output, 20, SCREEN_HEIGHT - 30, arcade.color.BLACK, 16)
+        arcade.draw_text(output, 50, SCREEN_HEIGHT - 30, arcade.color.BLACK, 12)
+
+        # Display Level
+        output = f'Level: {self.level}'
+        arcade.draw_text(output, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 30, arcade.color.BLACK, 12)
 
 
 if __name__ == "__main__":
     block_breaker = BlockBreaker(
         int(SCREEN_WIDTH * SCALING), int(SCREEN_HEIGHT * SCALING), SCREEN_TITLE
     )
-    block_breaker.setup(level=2)
+    block_breaker.setup(level=1)
     arcade.run()
