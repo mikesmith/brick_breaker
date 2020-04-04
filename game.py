@@ -42,6 +42,12 @@ class BlockBreaker(arcade.Window):
         self.extra_lives = arcade.SpriteList()
         self.all_sprites = arcade.SpriteList()
 
+        # Load sounds
+        # Sound sources: Jon Fincher
+        self.sbrick_sound = arcade.load_sound('sounds/sbrick_bounce.wav')
+        self.brick_sound = arcade.load_sound('sounds/brick_bounce.wav')
+        self.player_sound = arcade.load_sound('sounds/player_bounce.wav')
+
         # Set up the walls
         for i in range(8):
             new_left_wall = arcade.Sprite('images/wall_left.png', SCALING)
@@ -178,6 +184,10 @@ class BlockBreaker(arcade.Window):
             else:
                 self.ball.change_y = self.ball.change_y * -1
             blocks[0].hit()
+            if blocks[0].type == 9 or blocks[0].type == 8:
+                arcade.play_sound(self.sbrick_sound)
+            else:
+                arcade.play_sound(self.brick_sound)
             # If block reaches 0 hp, destroy block and increase score
             if blocks[0].hit_points == 0:
                 self.score += Block.clrs[blocks[0].type][1]
@@ -209,6 +219,7 @@ class BlockBreaker(arcade.Window):
             new_v = self.reflect(v, normal)
             self.ball.change_x = new_v.x
             self.ball.change_y = new_v.y
+            arcade.play_sound(self.player_sound)
 
         # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
@@ -264,5 +275,5 @@ if __name__ == "__main__":
     block_breaker = BlockBreaker(
         int(SCREEN_WIDTH * SCALING), int(SCREEN_HEIGHT * SCALING), SCREEN_TITLE
     )
-    block_breaker.setup(level=3)
+    block_breaker.setup(level=1)
     arcade.run()
