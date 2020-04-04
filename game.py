@@ -18,6 +18,7 @@ class BlockBreaker(arcade.Window):
 
         # Initialize score
         self.score = 0
+        self.lives = 2
 
     def setup(self, level):
         """Get the game ready to play."""
@@ -38,6 +39,7 @@ class BlockBreaker(arcade.Window):
         self.side_wall_sprites = arcade.SpriteList()
         self.top_wall_sprites = arcade.SpriteList()
         self.blocks = arcade.SpriteList()
+        self.extra_lives = arcade.SpriteList()
         self.all_sprites = arcade.SpriteList()
 
         # Set up the walls
@@ -61,6 +63,13 @@ class BlockBreaker(arcade.Window):
             self.top_wall_sprites.append(new_top_wall)
             self.all_sprites.append(new_top_wall)
 
+        for i in range(self.lives):
+            life = arcade.Sprite('images/player_life.png', SCALING)
+            life.bottom = 10
+            life.left = WALL_WIDTH + (30 * i)
+            self.extra_lives.append(life)
+            self.all_sprites.append(life)
+
         self.build_level(self.get_level_map(self.level))
 
         # Set up the player
@@ -69,10 +78,13 @@ class BlockBreaker(arcade.Window):
 
         # Set up the ball
         self.ball = Ball('images/ball.png', SCALING)
+        self.set_ball()
+        self.all_sprites.append(self.ball)
+
+    def set_ball(self):
         self.ball.bottom = self.player.top
         self.ball.center_x = self.player.center_x
         self.ball.stick(self.player)
-        self.all_sprites.append(self.ball)
 
     def get_level_map(self, level):
         filename = f'levels/level_{level}.csv'
@@ -200,7 +212,12 @@ class BlockBreaker(arcade.Window):
 
         # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
-            self.setup(self.level)
+            if len(self.extra_lives) == 0:
+                print('Game Over')
+                arcade.close_window()
+            else:
+                self.extra_lives.pop()
+                self.set_ball()
 
     def reflect(self, v, n):
         """Calculate reflection vector.
@@ -228,6 +245,7 @@ class BlockBreaker(arcade.Window):
         """Draw all game objects."""
         arcade.start_render()  # Needs to be called before drawing
         self.top_wall_sprites.draw()
+        self.extra_lives.draw()
         self.side_wall_sprites.draw()
         self.blocks.draw()
         self.player.draw()
