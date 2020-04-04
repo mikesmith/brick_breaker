@@ -4,6 +4,9 @@ from constants import SCREEN_WIDTH, WALL_WIDTH, MOVEMENT_SPEED
 
 
 class Player(arcade.Sprite):
+    LEFT = 1
+    CENTER = 2
+    RIGHT = 3
 
     def __init__(self, filename, scale):
         """Initialize the Player sprite."""
@@ -60,3 +63,12 @@ class Player(arcade.Sprite):
 
         if self.left < WALL_WIDTH:
             self.left = WALL_WIDTH
+
+    def collision_location(self, ball):
+        third = self.width / 3
+        if ball.center_x > self.left and ball.center_x < self.left + third:
+            return Player.LEFT
+        elif ball.center_x < self.right and ball.center_x > self.right - third:
+            return Player.RIGHT
+        else:
+            return Player.CENTER

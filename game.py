@@ -1,10 +1,13 @@
 import arcade
+from collections import namedtuple
 
 from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
                        SCALING, WALL_WIDTH)
 from player import Player
 from ball import Ball
 from block import Block
+
+Vector = namedtuple('Vector', 'x y')
 
 
 class BlockBreaker(arcade.Window):
@@ -20,6 +23,11 @@ class BlockBreaker(arcade.Window):
 
         # Initialize score
         self.score = 0
+
+        # Initialize collision check counter
+        # Prevents consecutive collisions within several frames between
+        # player and ball
+        self.collision_counter = 0
 
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
@@ -130,6 +138,9 @@ class BlockBreaker(arcade.Window):
         if self.pause:
             return
 
+        if self.collision_counter > 0:
+            self.collision_counter -= 1
+
         self.player.on_update(delta_time)
         self.ball.on_update(delta_time)
 
@@ -153,17 +164,36 @@ class BlockBreaker(arcade.Window):
         if self.ball.collides_with_list(self.top_wall_sprites):
             self.ball.change_y = self.ball.change_y * -1
 
-        if self.ball.collides_with_sprite(self.player):
-            self.ball.change_y = self.ball.change_y * -1
-            # If ball is moving exactly 90 degrees to player, force angle
-            # relative to center of player
-            if self.ball.change_x == 0:
-                collision_distance = self.ball.center_x - self.player.center_x
-                self.ball.change_x = (collision_distance) * 10
+        if self.ball.collides_with_sprite(self.player) and self.collision_counter == 0:
+            self.collision_counter = 20
+            v = Vector(x=self.ball.change_x, y=self.ball.change_y)
+            location = self.player.collision_location(self.ball)
+            normal = Vector(0, 1)
+            if location == Player.LEFT:
+                normal = Vector(0.196, -0.981)
+            elif location == Player.RIGHT:
+                normal = Vector(-0.196, -0.981)
+            new_v = self.reflect(v, normal)
+            self.ball.change_x = new_v.x
+            self.ball.change_y = new_v.y
 
         # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
             self.setup()
+
+    def reflect(self, v, n):
+        """Calculate reflection vector.
+
+        Using the formula: Vnew = V-2*(V dot N)*N
+
+        Arguments:
+            v {Vector} -- Original vector
+            n {Vector} -- Normal vector
+        """
+        dot = (v.x * n.x) + (v.y * n.y)
+        z = Vector(x=2 * dot * n.x, y=2 * dot * n.y)
+        new_vector = Vector(x=v.x - z.x, y=v.y - z.y)
+        return new_vector
 
     def on_draw(self):
         """Draw all game objects."""
