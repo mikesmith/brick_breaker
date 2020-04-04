@@ -246,5 +246,5 @@ if __name__ == "__main__":
     block_breaker = BlockBreaker(
         int(SCREEN_WIDTH * SCALING), int(SCREEN_HEIGHT * SCALING), SCREEN_TITLE
     )
-    block_breaker.setup(level=1)
+    block_breaker.setup(level=3)
     arcade.run()

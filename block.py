@@ -52,7 +52,8 @@ class Block(arcade.Sprite):
 
         A silver block will switch to a broken texture with 1 hit point left
         """
-        self.hit_points -= 1
+        if self.type != 9:
+            self.hit_points -= 1
         if self.type == 8 and self.hit_points <= 1:
             self.set_texture(1)
         return self.hit_points
