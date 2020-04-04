@@ -16,10 +16,13 @@ class BlockBreaker(arcade.Window):
         """Initialize the game."""
         super().__init__(width, height, title)
 
-    def setup(self):
+    def setup(self, level):
         """Get the game ready to play."""
         arcade.set_background_color(arcade.color.GRAY)
         self.pause = False
+
+        # Initialize level
+        self.level = level
 
         # Initialize score
         self.score = 0
@@ -56,7 +59,7 @@ class BlockBreaker(arcade.Window):
             self.top_wall_sprites.append(new_top_wall)
             self.all_sprites.append(new_top_wall)
 
-        self.build_level(self.get_level(1))
+        self.build_level(self.get_level_map(self.level))
 
         # Set up the player
         self.player = Player('images/player.png', SCALING)
@@ -69,7 +72,7 @@ class BlockBreaker(arcade.Window):
         self.ball.stick(self.player)
         self.all_sprites.append(self.ball)
 
-    def get_level(self, level):
+    def get_level_map(self, level):
         filename = f'levels/level_{level}.csv'
         with open(filename) as map_file:
             map_array = []
@@ -213,5 +216,5 @@ if __name__ == "__main__":
     block_breaker = BlockBreaker(
         int(SCREEN_WIDTH * SCALING), int(SCREEN_HEIGHT * SCALING), SCREEN_TITLE
     )
-    block_breaker.setup()
+    block_breaker.setup(level=2)
     arcade.run()
