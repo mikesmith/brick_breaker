@@ -154,7 +154,7 @@ class BlockBreaker(arcade.Window):
             # relative to center of player
             if self.ball.change_x == 0:
                 collision_distance = self.ball.center_x - self.player.center_x
-                self.ball.change_x = (collision_distance) * 5
+                self.ball.change_x = (collision_distance) * 10
 
         # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
