@@ -6,21 +6,21 @@ class Block(arcade.Sprite):
     BLOCK_WIDTH = 40
     BLOCK_HEIGHT = 20
 
-    clrs = ['white',
-            'orange',
-            'light_blue',
-            'green',
-            'red',
-            'blue',
-            'pink',
-            'yellow',
-            'silver',
-            'gold']
+    CLRS = [('white', 50),
+            ('orange', 60),
+            ('light_blue', 70),
+            ('green', 80),
+            ('red', 90),
+            ('blue', 100),
+            ('pink', 110),
+            ('yellow', 120),
+            ('silver', 50),
+            ('gold', 0)]
     hit_points = 1
 
     def __init__(self, type, scale, x, y):
         """Initialize the Block sprite."""
-        super().__init__(f'images/block_{self.clrs[type]}.png', scale)
+        super().__init__(f'images/block_{self.CLRS[type][0]}.png', scale)
 
         self.type = type
         self.left = x

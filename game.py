@@ -18,6 +18,9 @@ class BlockBreaker(arcade.Window):
         arcade.set_background_color(arcade.color.GRAY)
         self.pause = False
 
+        # Initialize score
+        self.score = 0
+
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
         self.top_wall_sprites = arcade.SpriteList()
@@ -139,7 +142,9 @@ class BlockBreaker(arcade.Window):
             else:
                 self.ball.change_y = self.ball.change_y * -1
             blocks[0].hit()
+            # If block reaches 0 hp, destroy block and increase score
             if blocks[0].hit_points == 0:
+                self.score += Block.clrs[blocks[0].type][1]
                 blocks[0].remove_from_sprite_lists()
 
         if self.ball.collides_with_list(self.side_wall_sprites):
@@ -168,6 +173,10 @@ class BlockBreaker(arcade.Window):
         self.blocks.draw()
         self.player.draw()
         self.ball.draw()
+
+        # Display score
+        output = f'Score: {self.score}'
+        arcade.draw_text(output, 20, SCREEN_HEIGHT - 30, arcade.color.BLACK, 16)
 
 
 if __name__ == "__main__":
