@@ -3,7 +3,7 @@ import arcade
 
 class Block(arcade.Sprite):
 
-    BLOCK_WIDTH = 40
+    BLOCK_WIDTH = 34
     BLOCK_HEIGHT = 20
 
     clrs = [('white', 50),

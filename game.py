@@ -182,7 +182,7 @@ class BlockBreaker(arcade.Window):
 
         # If ball drops below player and screen, setup from beginning
         if self.ball.top <= 0:
-            self.setup()
+            self.setup(self.level)
 
     def reflect(self, v, n):
         """Calculate reflection vector.
