@@ -1,13 +1,10 @@
 import arcade
-from collections import namedtuple
 
 from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
                        SCALING, WALL_WIDTH)
 from player import Player
 from ball import Ball
-from block import Block
-
-Vector = namedtuple('Vector', 'x y')
+from block import Block, BLOCK_WIDTH, BLOCK_HEIGHT
 
 
 class BlockBreaker(arcade.Window):
@@ -43,7 +40,7 @@ class BlockBreaker(arcade.Window):
         self.all_sprites = arcade.SpriteList()
 
         # Load sounds
-        # Sound sources: Jon Fincher
+        # Sound src: https://www.sounds-resource.com/nes/arkanoid/sound/3698/
         self.sbrick_sound = arcade.load_sound('sounds/sbrick_bounce.wav')
         self.brick_sound = arcade.load_sound('sounds/brick_bounce.wav')
         self.player_sound = arcade.load_sound('sounds/player_bounce.wav')
@@ -69,6 +66,7 @@ class BlockBreaker(arcade.Window):
             self.top_wall_sprites.append(new_top_wall)
             self.all_sprites.append(new_top_wall)
 
+        # Set up the extra lives sprites
         for i in range(self.lives):
             life = arcade.Sprite('images/player_life.png', SCALING)
             life.bottom = 10
@@ -76,6 +74,7 @@ class BlockBreaker(arcade.Window):
             self.extra_lives.append(life)
             self.all_sprites.append(life)
 
+        # Retrieve the level pattern and build the current level
         self.build_level(self.get_level_map(self.level))
 
         # Set up the player
@@ -83,16 +82,19 @@ class BlockBreaker(arcade.Window):
         self.all_sprites.append(self.player)
 
         # Set up the ball
-        self.ball = Ball('images/ball.png', SCALING)
-        self.set_ball()
+        self.ball = Ball('images/ball.png', SCALING, self.player)
         self.all_sprites.append(self.ball)
 
-    def set_ball(self):
-        self.ball.bottom = self.player.top
-        self.ball.center_x = self.player.center_x
-        self.ball.stick(self.player)
-
     def get_level_map(self, level):
+        """Retrieve the given level map from csv file.
+
+        Arguments:
+            level {int} -- The level ID to fetch
+
+        Returns:
+            map_array {[[str]]} -- A 2D array representing the brick pattern
+
+        """
         filename = f'levels/level_{level}.csv'
         with open(filename) as map_file:
             map_array = []
@@ -103,13 +105,18 @@ class BlockBreaker(arcade.Window):
         return map_array
 
     def build_level(self, map_array):
+        """Build the brick pattern given a map array of the level.
+
+        Arguments:
+            map_array {[[str]]} -- A 2D array representing the brick pattern
+        """
         for i, row in enumerate(map_array):
             for j, type in enumerate(row):
                 if type != '-':
                     block = Block(int(type),
                                   SCALING,
-                                  WALL_WIDTH + (Block.BLOCK_WIDTH * j),
-                                  SCREEN_HEIGHT - 40 - (Block.BLOCK_HEIGHT * i))
+                                  WALL_WIDTH + (BLOCK_WIDTH * j),
+                                  SCREEN_HEIGHT - 40 - (BLOCK_HEIGHT * i))
                     self.blocks.append(block)
                     self.all_sprites.append(block)
 
@@ -118,8 +125,8 @@ class BlockBreaker(arcade.Window):
 
         Q: Quit the game
         P: Pause/Unpause the game
-        J/K: Move Left or Right
         Arrows: Move Left or Right
+        Space: Shoot the ball from initial position
 
         Arguments:
             symbol {int} -- Which key was pressed
@@ -175,23 +182,22 @@ class BlockBreaker(arcade.Window):
         self.player.on_update(delta_time)
         self.ball.on_update(delta_time)
 
-        # If ball collides with a block, determine if block was hit on side
-        # or top/bottom. Remove block from sprite lists
         blocks = self.ball.collides_with_list(self.blocks)
         if blocks:
-            if blocks[0].side_collision(self.ball):
-                self.ball.change_x = self.ball.change_x * -1
-            else:
-                self.ball.change_y = self.ball.change_y * -1
-            blocks[0].hit()
-            if blocks[0].type == 9 or blocks[0].type == 8:
+            # Limit to one block collision at a time
+            block = blocks[0]
+            self.ball.collides_with_brick(block)
+
+            block.hit()
+            if block.type == 9 or block.type == 8:
                 arcade.play_sound(self.sbrick_sound)
             else:
                 arcade.play_sound(self.brick_sound)
+
             # If block reaches 0 hp, destroy block and increase score
-            if blocks[0].hit_points == 0:
-                self.score += Block.clrs[blocks[0].type][1]
-                blocks[0].remove_from_sprite_lists()
+            if block.hit_points == 0:
+                self.score += Block.clrs[block.type][1]
+                block.remove_from_sprite_lists()
                 if self.level_completed():
                     self.setup(self.level + 1)
 
@@ -207,18 +213,8 @@ class BlockBreaker(arcade.Window):
 
         if (self.ball.collides_with_sprite(self.player)
                 and self.player_collision_counter == 0):
-
             self.player_collision_counter = 20
-            v = Vector(x=self.ball.change_x, y=self.ball.change_y)
-            location = self.player.collision_location(self.ball)
-            normal = Vector(0, 1)
-            if location == Player.LEFT:
-                normal = Vector(0.196, -0.981)
-            elif location == Player.RIGHT:
-                normal = Vector(-0.196, -0.981)
-            new_v = self.reflect(v, normal)
-            self.ball.change_x = new_v.x
-            self.ball.change_y = new_v.y
+            self.ball.collides_with_player()
             arcade.play_sound(self.player_sound)
 
         # If ball drops below player and screen, setup from beginning
@@ -228,23 +224,18 @@ class BlockBreaker(arcade.Window):
                 arcade.close_window()
             else:
                 self.extra_lives.pop()
-                self.set_ball()
-
-    def reflect(self, v, n):
-        """Calculate reflection vector.
-
-        Using the formula: Vnew = V-2*(V dot N)*N
-
-        Arguments:
-            v {Vector} -- Original vector
-            n {Vector} -- Normal vector
-        """
-        dot = (v.x * n.x) + (v.y * n.y)
-        z = Vector(x=2 * dot * n.x, y=2 * dot * n.y)
-        new_vector = Vector(x=v.x - z.x, y=v.y - z.y)
-        return new_vector
+                self.ball.set_ball()
 
     def level_completed(self):
+        """Check if the level has been completed.
+
+        If the number of blocks is 0, the level has been completed. If the
+        only remaining bricks are gold, the level is completed.
+
+        Returns:
+            bool -- True if level is completed. False otherwise.
+
+        """
         if len(self.blocks) == 0:
             return True
         for block in self.blocks:
@@ -256,19 +247,25 @@ class BlockBreaker(arcade.Window):
         """Draw all game objects."""
         arcade.start_render()  # Needs to be called before drawing
         self.top_wall_sprites.draw()
-        self.extra_lives.draw()
         self.side_wall_sprites.draw()
+        self.extra_lives.draw()
         self.blocks.draw()
         self.player.draw()
         self.ball.draw()
 
         # Display score
-        output = f'Score: {self.score}'
-        arcade.draw_text(output, 50, SCREEN_HEIGHT - 30, arcade.color.BLACK, 12)
+        arcade.draw_text(f'Score: {self.score}',
+                         50,
+                         SCREEN_HEIGHT - 30,
+                         arcade.color.BLACK,
+                         12)
 
         # Display Level
-        output = f'Level: {self.level}'
-        arcade.draw_text(output, SCREEN_WIDTH - 100, SCREEN_HEIGHT - 30, arcade.color.BLACK, 12)
+        arcade.draw_text(f'Level: {self.level}',
+                         SCREEN_WIDTH - 100,
+                         SCREEN_HEIGHT - 30,
+                         arcade.color.BLACK,
+                         12)
 
 
 if __name__ == "__main__":

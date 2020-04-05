@@ -1,6 +1,8 @@
 import arcade
 
-from constants import SCREEN_WIDTH, WALL_WIDTH, MOVEMENT_SPEED
+from constants import SCREEN_WIDTH, WALL_WIDTH
+
+MOVEMENT_SPEED = 250
 
 
 class Player(arcade.Sprite):
@@ -46,6 +48,11 @@ class Player(arcade.Sprite):
             self.right_pressed = False
 
     def on_update(self, delta_time: float):
+        """Update the positions and statuses of the player object.
+
+        Arguments:
+            delta_time {float} -- Time since the last update
+        """
         self.change_x = 0
         self.change_y = 0
 
@@ -65,6 +72,11 @@ class Player(arcade.Sprite):
             self.left = WALL_WIDTH
 
     def collision_location(self, ball):
+        """Determine the location of where the ball collided with the player.
+
+        Arguments:
+             ball -- The ball game object
+        """
         third = self.width / 3
         if ball.center_x > self.left and ball.center_x < self.left + third:
             return Player.LEFT

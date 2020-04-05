@@ -1,10 +1,10 @@
 import arcade
 
+BLOCK_WIDTH = 34
+BLOCK_HEIGHT = 20
+
 
 class Block(arcade.Sprite):
-
-    BLOCK_WIDTH = 34
-    BLOCK_HEIGHT = 20
 
     clrs = [('white', 50),
             ('orange', 60),
@@ -36,6 +36,11 @@ class Block(arcade.Sprite):
 
         Arguments:
             ball {Ball} -- The ball sprite
+
+        Returns:
+            bool -- True if the ball is near the sides of the brick. False
+                    if the ball is near the top or bottome of the brick.
+
         """
         if (ball.center_x >= self.right
            and ball.center_y >= self.bottom
@@ -50,10 +55,10 @@ class Block(arcade.Sprite):
     def hit(self):
         """Reduce hit points of block by 1.
 
-        A silver block will switch to a broken texture with 1 hit point left
+        A silver block will switch to a broken texture with 1 hit point left.
+        A gold block cannot be damaged.
         """
         if self.type != 9:
             self.hit_points -= 1
         if self.type == 8 and self.hit_points <= 1:
             self.set_texture(1)
-        return self.hit_points
