@@ -4,10 +4,10 @@ from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
                        SCALING, WALL_WIDTH)
 from player import Player
 from ball import Ball
-from block import Block, BLOCK_WIDTH, BLOCK_HEIGHT
+from brick import Brick, BRICK_WIDTH, BRICK_HEIGHT
 
 
-class BlockBreaker(arcade.Window):
+class BrickBreaker(arcade.Window):
 
     def __init__(self, width, height, title):
         """Initialize the game."""
@@ -35,7 +35,7 @@ class BlockBreaker(arcade.Window):
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
         self.top_wall_sprites = arcade.SpriteList()
-        self.blocks = arcade.SpriteList()
+        self.bricks = arcade.SpriteList()
         self.extra_lives = arcade.SpriteList()
         self.all_sprites = arcade.SpriteList()
 
@@ -113,12 +113,12 @@ class BlockBreaker(arcade.Window):
         for i, row in enumerate(map_array):
             for j, type in enumerate(row):
                 if type != '-':
-                    block = Block(int(type),
+                    brick = Brick(int(type),
                                   SCALING,
-                                  WALL_WIDTH + (BLOCK_WIDTH * j),
-                                  SCREEN_HEIGHT - 40 - (BLOCK_HEIGHT * i))
-                    self.blocks.append(block)
-                    self.all_sprites.append(block)
+                                  WALL_WIDTH + (BRICK_WIDTH * j),
+                                  SCREEN_HEIGHT - 40 - (BRICK_HEIGHT * i))
+                    self.bricks.append(brick)
+                    self.all_sprites.append(brick)
 
     def on_key_press(self, symbol: int, modifiers: int):
         """Handle user keyboard input.
@@ -158,8 +158,8 @@ class BlockBreaker(arcade.Window):
         """Update the positions and statuses of all game objects.
 
         If paused, do nothing
-        Check ball collisions with blocks, walls, and player. Update
-        ball vector on each collision. Remove blocks when collision
+        Check ball collisions with bricks, walls, and player. Update
+        ball vector on each collision. Remove bricks when collision
         detected with ball.
 
         Arguments:
@@ -182,22 +182,22 @@ class BlockBreaker(arcade.Window):
         self.player.on_update(delta_time)
         self.ball.on_update(delta_time)
 
-        blocks = self.ball.collides_with_list(self.blocks)
-        if blocks:
-            # Limit to one block collision at a time
-            block = blocks[0]
-            self.ball.collides_with_brick(block)
+        bricks = self.ball.collides_with_list(self.bricks)
+        if bricks:
+            # Limit to one brick collision at a time
+            brick = bricks[0]
+            self.ball.collides_with_brick(brick)
 
-            block.hit()
-            if block.type == 9 or block.type == 8:
+            brick.hit()
+            if brick.type == 9 or brick.type == 8:
                 arcade.play_sound(self.sbrick_sound)
             else:
                 arcade.play_sound(self.brick_sound)
 
-            # If block reaches 0 hp, destroy block and increase score
-            if block.hit_points == 0:
-                self.score += Block.clrs[block.type][1]
-                block.remove_from_sprite_lists()
+            # If brick reaches 0 hp, destroy brick and increase score
+            if brick.hit_points == 0:
+                self.score += Brick.clrs[brick.type][1]
+                brick.remove_from_sprite_lists()
                 if self.level_completed():
                     self.setup(self.level + 1)
 
@@ -229,17 +229,17 @@ class BlockBreaker(arcade.Window):
     def level_completed(self):
         """Check if the level has been completed.
 
-        If the number of blocks is 0, the level has been completed. If the
+        If the number of bricks is 0, the level has been completed. If the
         only remaining bricks are gold, the level is completed.
 
         Returns:
             bool -- True if level is completed. False otherwise.
 
         """
-        if len(self.blocks) == 0:
+        if len(self.bricks) == 0:
             return True
-        for block in self.blocks:
-            if block.type != 9:
+        for brick in self.bricks:
+            if brick.type != 9:
                 return False
         return True
 
@@ -249,7 +249,7 @@ class BlockBreaker(arcade.Window):
         self.top_wall_sprites.draw()
         self.side_wall_sprites.draw()
         self.extra_lives.draw()
-        self.blocks.draw()
+        self.bricks.draw()
         self.player.draw()
         self.ball.draw()
 
@@ -269,8 +269,8 @@ class BlockBreaker(arcade.Window):
 
 
 if __name__ == "__main__":
-    block_breaker = BlockBreaker(
+    brick_breaker = BrickBreaker(
         int(SCREEN_WIDTH * SCALING), int(SCREEN_HEIGHT * SCALING), SCREEN_TITLE
     )
-    block_breaker.setup(level=1)
+    brick_breaker.setup(level=1)
     arcade.run()
