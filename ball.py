@@ -2,6 +2,7 @@ import arcade
 
 from utils import Vector, reflect
 from player import Player
+from power_up import PowerUpType
 
 BALL_SPEED = 400
 
@@ -12,6 +13,8 @@ class Ball(arcade.Sprite):
     # stuck_on[0] = sprite
     # stuck_on[1] = location of ball on object relative to sprite.left
     stuck_on = (None, 0)
+
+    current_power_up = None
 
     def __init__(self, filename, scale, player):
         """Initialize the Ball sprite."""
@@ -35,19 +38,23 @@ class Ball(arcade.Sprite):
 
     def collides_with_player(self):
         """Update the velocity when a collision with the player occurs."""
-        v = Vector(x=self.change_x, y=self.change_y)
-        location = self.player.collision_location(self)
-        normal = Vector(0, 1)
+        if self.current_power_up == PowerUpType.CATCH:
+            self.stick(self.player)
+            self.bottom = self.player.top
+        else:
+            v = Vector(x=self.change_x, y=self.change_y)
+            location = self.player.collision_location(self)
+            normal = Vector(0, 1)
 
-        # Determine where the ball collided to "enhance" angle of reflection
-        if location == Player.LEFT:
-            normal = Vector(0.196, -0.981)
-        elif location == Player.RIGHT:
-            normal = Vector(-0.196, -0.981)
+            # Determine where the ball collided to "enhance" angle of reflection
+            if location == Player.LEFT:
+                normal = Vector(0.196, -0.981)
+            elif location == Player.RIGHT:
+                normal = Vector(-0.196, -0.981)
 
-        new_v = reflect(v, normal)
-        self.change_x = new_v.x
-        self.change_y = new_v.y
+            new_v = reflect(v, normal)
+            self.change_x = new_v.x
+            self.change_y = new_v.y
 
     def collides_with_brick(self, brick):
         """Update the velocity when a collision with a brick occurs."""
@@ -58,6 +65,7 @@ class Ball(arcade.Sprite):
 
     def set_ball(self):
         """Set the ball to the initial position on the player."""
+        self.current_power_up = None
         self.bottom = self.player.top
         self.center_x = self.player.center_x
         self.stick(self.player)
@@ -77,5 +85,6 @@ class Ball(arcade.Sprite):
 
     def shoot(self):
         """Shoot the ball with it's initial velocity."""
-        self.stick(None)
-        self.change_y = BALL_SPEED
+        if self.stuck_on[0]:
+            self.stick(None)
+            self.change_y = BALL_SPEED
