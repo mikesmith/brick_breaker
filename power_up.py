@@ -15,14 +15,13 @@ class PowerUp(arcade.Sprite):
     def __init__(self, x, y):
         """Initialize the Brick sprite."""
         self.type = random.choice(list(PowerUpType))
-        print(self.type)
 
-        super().__init__(f'images/pup_catch.png', SCALING)
+        super().__init__(f'images/pup_{self.type.value}.png', SCALING)
 
         self.center_x = x
         self.center_y = y
         self.change_y = -150
-        
+
     def on_update(self, delta_time: float):
         """Update the positions and statuses of the power up game object.
 
@@ -41,4 +40,4 @@ class PowerUp(arcade.Sprite):
         if self.type == PowerUpType.CATCH:
             ball.current_power_up = self.type
         elif self.type == PowerUpType.SLOW:
-            print('Slow Power Up')
+            ball.set_slow_power_up()
