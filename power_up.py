@@ -9,6 +9,7 @@ class PowerUpType(Enum):
     CATCH = 'catch'
     SLOW = 'slow'
     ENLARGE = 'enlarge'
+    EXTRA = 'player'
 
 
 class PowerUp(arcade.Sprite):

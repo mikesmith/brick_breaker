@@ -6,7 +6,7 @@ from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
 from player import Player
 from ball import Ball
 from brick import Brick, BRICK_WIDTH, BRICK_HEIGHT
-from power_up import PowerUp
+from power_up import PowerUp, PowerUpType
 
 
 class BrickBreaker(arcade.Window):
@@ -233,6 +233,8 @@ class BrickBreaker(arcade.Window):
         pup = self.player.collides_with_list(self.power_ups)
         if pup:
             pup[0].remove_from_sprite_lists()
+            if pup[0].type == PowerUpType.EXTRA:
+                self.add_life()
             pup[0].on_collide(self.player, self.ball)
 
         # If ball drops below player and screen, setup from beginning
@@ -241,6 +243,7 @@ class BrickBreaker(arcade.Window):
                 print('Game Over')
                 arcade.close_window()
             else:
+                self.lives = self.lives - 1
                 self.extra_lives.pop()
                 self.ball.set_ball()
                 self.player.clear_power_up()
@@ -261,6 +264,14 @@ class BrickBreaker(arcade.Window):
             if brick.type != 9:
                 return False
         return True
+
+    def add_life(self):
+        self.lives = self.lives + 1
+        life = arcade.Sprite('images/player_life.png', SCALING)
+        life.bottom = 10
+        life.left = WALL_WIDTH + (30 * (self.lives - 1))
+        self.extra_lives.append(life)
+        self.all_sprites.append(life)
 
     def drop_power_up(self, brick):
         """Create a new random power up.
