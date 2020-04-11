@@ -76,7 +76,7 @@ class Ball(arcade.Sprite):
 
     def set_ball(self):
         """Set the ball to the initial position on the player."""
-        self.current_power_up = None
+        self.clear_power_up()
         self.mod = 1.0
         self.bottom = self.player.top
         self.center_x = self.player.center_x
@@ -95,13 +95,20 @@ class Ball(arcade.Sprite):
             diff = self.center_x - sprite.left
         self.stuck_on = (sprite, diff)
 
-    def set_slow_power_up(self):
+    def clear_power_up(self):
+        self.current_power_up = None
+
+    def set_power_up(self, pup):
         """Set the ball to have the SLOW power up.
 
         Can be cumulative if multiple slow power ups are picked up.
         """
-        self.current_power_up = PowerUpType.SLOW
-        self.mod = self.mod * 0.5
+        self.clear_power_up()
+        if pup == PowerUpType.SLOW:
+            self.current_power_up = PowerUpType.SLOW
+            self.mod = self.mod * 0.5
+        elif pup == PowerUpType.CATCH:
+            self.current_power_up = PowerUpType.CATCH
 
     def increase_speed_mod(self, mod=0.05):
         """Increase the speed modifier.

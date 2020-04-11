@@ -243,6 +243,7 @@ class BrickBreaker(arcade.Window):
             else:
                 self.extra_lives.pop()
                 self.ball.set_ball()
+                self.player.clear_power_up()
 
     def level_completed(self):
         """Check if the level has been completed.

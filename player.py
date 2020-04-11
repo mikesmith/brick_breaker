@@ -1,6 +1,7 @@
 import arcade
 
 from constants import SCREEN_WIDTH, WALL_WIDTH
+from power_up import PowerUpType
 
 MOVEMENT_SPEED = 250
 
@@ -10,9 +11,14 @@ class Player(arcade.Sprite):
     CENTER = 2
     RIGHT = 3
 
+    current_power_up = None
+
     def __init__(self, filename, scale):
         """Initialize the Player sprite."""
         super().__init__(filename, scale)
+
+        texture = arcade.load_texture('images/player_enlarged.png')
+        self.append_texture(texture)
 
         self.center_x = SCREEN_WIDTH / 2
         self.center_y = 50
@@ -84,3 +90,12 @@ class Player(arcade.Sprite):
             return Player.RIGHT
         else:
             return Player.CENTER
+
+    def clear_power_up(self):
+        self.set_texture(0)
+        self.current_power_up = None
+
+    def set_power_up(self, pup):
+        self.clear_power_up()
+        if pup == PowerUpType.ENLARGE:
+            self.set_texture(1)

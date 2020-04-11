@@ -8,6 +8,7 @@ from constants import SCALING
 class PowerUpType(Enum):
     CATCH = 'catch'
     SLOW = 'slow'
+    ENLARGE = 'enlarge'
 
 
 class PowerUp(arcade.Sprite):
@@ -37,7 +38,12 @@ class PowerUp(arcade.Sprite):
             player -- The player game object
             ball -- The ball game object
         """
-        if self.type == PowerUpType.CATCH:
-            ball.current_power_up = self.type
-        elif self.type == PowerUpType.SLOW:
-            ball.set_slow_power_up()
+        player.clear_power_up()
+        ball.clear_power_up()
+
+        if (self.type == PowerUpType.CATCH
+           or self.type == PowerUpType.SLOW):
+
+            ball.set_power_up(self.type)
+        elif (self.type == PowerUpType.ENLARGE):
+            player.set_power_up(self.type)
