@@ -11,6 +11,7 @@ class PowerUpType(Enum):
     ENLARGE = 'enlarge'
     EXTRA = 'player'
     DISRUPT = 'disruption'
+    BREAK = 'break_out'
 
 
 class PowerUp(arcade.Sprite):
@@ -48,4 +49,7 @@ class PowerUp(arcade.Sprite):
 
             ball.set_power_up(self.type)
         elif (self.type == PowerUpType.ENLARGE):
+            player.set_power_up(self.type)
+
+        elif (self.type == PowerUpType.BREAK):
             player.set_power_up(self.type)

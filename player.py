@@ -23,6 +23,9 @@ class Player(arcade.Sprite):
         self.center_x = SCREEN_WIDTH / 2
         self.center_y = 50
 
+        self.break_out = False
+        self.break_out_counter = 0
+
         # Track the current state of what key is pressed
         self.left_pressed = False
         self.right_pressed = False
@@ -71,11 +74,16 @@ class Player(arcade.Sprite):
         self.center_y = self.center_y + self.change_y * delta_time
 
         # Keep Player in area
-        if self.right > SCREEN_WIDTH - WALL_WIDTH:
+        if self.right > SCREEN_WIDTH - WALL_WIDTH and not self.break_out:
             self.right = SCREEN_WIDTH - WALL_WIDTH
 
         if self.left < WALL_WIDTH:
             self.left = WALL_WIDTH
+
+        if self.break_out and self.break_out_counter > 0:
+            self.break_out_counter -= delta_time
+        else:
+            self.break_out = False
 
     def collision_location(self, ball):
         """Determine the location of where the ball collided with the player.
@@ -99,3 +107,7 @@ class Player(arcade.Sprite):
         self.clear_power_up()
         if pup == PowerUpType.ENLARGE:
             self.set_texture(1)
+        elif pup == PowerUpType.BREAK:
+            self.break_out = True
+            # Allow breakout to last 10 seconds
+            self.break_out_counter = 10

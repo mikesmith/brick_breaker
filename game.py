@@ -26,6 +26,7 @@ class BrickBreaker(arcade.Window):
 
         # Initialize level
         self.level = level
+        self.break_out = False
 
         # Initialize power up counter
         self.pup_counter = 5
@@ -56,7 +57,10 @@ class BrickBreaker(arcade.Window):
             new_right_wall = arcade.Sprite('images/wall_right.png', SCALING)
             new_right_wall.right = SCREEN_WIDTH
             new_right_wall.bottom = i * 100
-            self.side_wall_sprites.append(new_right_wall)
+            if i == 0:
+                self.break_out_wall = new_right_wall
+            else:
+                self.side_wall_sprites.append(new_right_wall)
             self.all_sprites.append(new_right_wall)
 
         for i in range(6):
@@ -196,8 +200,6 @@ class BrickBreaker(arcade.Window):
                     else:
                         self.pup_counter = self.pup_counter - 1
                     brick.remove_from_sprite_lists()
-                    if self.level_completed():
-                        self.setup(self.level + 1)
 
             if (ball.collides_with_list(self.side_wall_sprites)
                     and ball.side_wall_collision_counter == 0):
@@ -230,6 +232,9 @@ class BrickBreaker(arcade.Window):
             if ball.top <= 0:
                 ball.remove_from_sprite_lists()
 
+        if self.level_completed():
+            self.setup(self.level + 1)
+
         if len(self.balls) <= 0:
             if len(self.extra_lives) == 0:
                 print('Game Over')
@@ -249,10 +254,16 @@ class BrickBreaker(arcade.Window):
         If the number of bricks is 0, the level has been completed. If the
         only remaining bricks are gold, the level is completed.
 
+        If the player received breakout power up, check to see if the player
+        sprite moved beyond the right wall boundary.
+
         Returns:
             bool -- True if level is completed. False otherwise.
 
         """
+        if self.player.left >= self.width and self.player.break_out:
+            self.score = self.score + 10000
+            return True
         if len(self.bricks) == 0:
             return True
         for brick in self.bricks:
@@ -285,6 +296,8 @@ class BrickBreaker(arcade.Window):
         """Draw all game objects."""
         arcade.start_render()  # Needs to be called before drawing
         self.top_wall_sprites.draw()
+        if not self.player.break_out:
+            self.break_out_wall.draw()
         self.side_wall_sprites.draw()
         self.extra_lives.draw()
         self.power_ups.draw()
