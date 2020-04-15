@@ -1,6 +1,7 @@
 import arcade
 
 from utils import Vector, reflect
+from constants import SCALING
 from player import Player
 from power_up import PowerUpType
 
@@ -19,12 +20,31 @@ class Ball(arcade.Sprite):
     # Speed modifier to be decreased when a SLOW power up is picked up
     mod = 1.0
 
-    def __init__(self, filename, scale, player):
+    def __init__(self, filename, scale, player, power_up=None):
         """Initialize the Ball sprite."""
         super().__init__(f'images/ball.png', scale)
 
         self.player = player
-        self.set_ball()
+        if power_up is None:
+            self.set_ball()
+
+        # Initialize collision check counters
+        # Prevents consecutive collisions within several frames between
+        # player, ball and walls
+        self.player_collision_counter = 0
+        self.top_wall_collision_counter = 0
+        self.side_wall_collision_counter = 0
+
+    def copy(self):
+        c_ball = Ball(f'images/ball',
+                      SCALING,
+                      self.player,
+                      power_up=PowerUpType.DISRUPT)
+        c_ball.center_x = self.center_x
+        c_ball.center_y = self.center_y
+        c_ball.change_x = self.change_x
+        c_ball.change_y = self.change_y
+        return c_ball
 
     def on_update(self, delta_time: float):
         """Update the positions and statuses of the ball game object.
@@ -38,6 +58,17 @@ class Ball(arcade.Sprite):
         else:
             self.center_x = self.center_x + self.change_x * delta_time * self.mod
             self.center_y = self.center_y + self.change_y * delta_time * self.mod
+
+        # Decrement collision counters
+        # Counters prevent consecutive bounces within 20 frames
+        if self.player_collision_counter > 0:
+            self.player_collision_counter -= 1
+
+        if self.top_wall_collision_counter > 0:
+            self.top_wall_collision_counter -= 1
+
+        if self.side_wall_collision_counter > 0:
+            self.side_wall_collision_counter -= 1
 
     def collides_with_player(self):
         """Update the velocity when a collision with the player occurs."""

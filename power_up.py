@@ -10,6 +10,7 @@ class PowerUpType(Enum):
     SLOW = 'slow'
     ENLARGE = 'enlarge'
     EXTRA = 'player'
+    DISRUPT = 'disruption'
 
 
 class PowerUp(arcade.Sprite):

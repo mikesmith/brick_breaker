@@ -27,23 +27,17 @@ class BrickBreaker(arcade.Window):
         # Initialize level
         self.level = level
 
-        # Initialize collision check counters
-        # Prevents consecutive collisions within several frames between
-        # player, ball and walls
-        self.player_collision_counter = 0
-        self.top_wall_collision_counter = 0
-        self.side_wall_collision_counter = 0
-
         # Initialize power up counter
         self.pup_counter = 5
 
         # Initialize sprite lists
         self.side_wall_sprites = arcade.SpriteList()
         self.top_wall_sprites = arcade.SpriteList()
+        self.balls = arcade.SpriteList()
         self.bricks = arcade.SpriteList()
         self.extra_lives = arcade.SpriteList()
-        self.all_sprites = arcade.SpriteList()
         self.power_ups = arcade.SpriteList()
+        self.all_sprites = arcade.SpriteList()
 
         # Load sounds
         # Sound src: https://www.sounds-resource.com/nes/arkanoid/sound/3698/
@@ -88,8 +82,9 @@ class BrickBreaker(arcade.Window):
         self.all_sprites.append(self.player)
 
         # Set up the ball
-        self.ball = Ball('images/ball.png', SCALING, self.player)
-        self.all_sprites.append(self.ball)
+        ball = Ball('images/ball.png', SCALING, self.player)
+        self.balls.append(ball)
+        self.all_sprites.append(ball)
 
     def get_level_map(self, level):
         """Retrieve the given level map from csv file.
@@ -147,7 +142,7 @@ class BrickBreaker(arcade.Window):
 
         if symbol == arcade.key.SPACE:
             # Shoot the ball!
-            self.ball.shoot()
+            self.balls[0].shoot()
 
         self.player.on_key_press(symbol, modifiers)
 
@@ -174,78 +169,78 @@ class BrickBreaker(arcade.Window):
         if self.pause:
             return
 
-        # Decrement collision counters
-        # Counters prevent consecutive bounces within 20 frames
-        if self.player_collision_counter > 0:
-            self.player_collision_counter -= 1
-
-        if self.top_wall_collision_counter > 0:
-            self.top_wall_collision_counter -= 1
-
-        if self.side_wall_collision_counter > 0:
-            self.side_wall_collision_counter -= 1
-
         self.player.on_update(delta_time)
         self.power_ups.on_update(delta_time)
-        self.ball.on_update(delta_time)
+        self.balls.on_update(delta_time)
 
-        bricks = self.ball.collides_with_list(self.bricks)
-        if bricks:
-            # Limit to one brick collision at a time
-            brick = bricks[0]
-            self.ball.collides_with_brick(brick)
+        for ball in self.balls:
+            bricks = ball.collides_with_list(self.bricks)
+            if bricks:
+                # Limit to one brick collision at a time
+                brick = bricks[0]
+                ball.collides_with_brick(brick)
 
-            brick.hit()
-            if brick.type == 9 or brick.type == 8:
-                arcade.play_sound(self.sbrick_sound)
-            else:
-                arcade.play_sound(self.brick_sound)
-
-            # If brick reaches 0 hp, destroy brick and increase score
-            if brick.hit_points == 0:
-                self.score += Brick.clrs[brick.type][1]
-                # If enough non-gold/silver bricks have been destroyed,
-                # drop a power up
-                if brick.type != 9 and brick.type != 8 and self.pup_counter == 0:
-                    self.drop_power_up(brick)
+                brick.hit()
+                if brick.type == 9 or brick.type == 8:
+                    arcade.play_sound(self.sbrick_sound)
                 else:
-                    self.pup_counter = self.pup_counter - 1
-                brick.remove_from_sprite_lists()
-                if self.level_completed():
-                    self.setup(self.level + 1)
+                    arcade.play_sound(self.brick_sound)
 
-        if (self.ball.collides_with_list(self.side_wall_sprites)
-                and self.side_wall_collision_counter == 0):
-            self.ball.change_x = self.ball.change_x * -1
-            self.side_wall_collision_counter = 20
+                # If brick reaches 0 hp, destroy brick and increase score
+                if brick.hit_points == 0:
+                    self.score += Brick.clrs[brick.type][1]
+                    # If enough non-gold/silver bricks have been destroyed,
+                    # drop a power up
+                    if brick.type != 9 and brick.type != 8 and self.pup_counter <= 0:
+                        self.drop_power_up(brick)
+                    else:
+                        self.pup_counter = self.pup_counter - 1
+                    brick.remove_from_sprite_lists()
+                    if self.level_completed():
+                        self.setup(self.level + 1)
 
-        if (self.ball.collides_with_list(self.top_wall_sprites)
-                and self.top_wall_collision_counter == 0):
-            self.ball.change_y = self.ball.change_y * -1
-            self.top_wall_collision_counter = 20
+            if (ball.collides_with_list(self.side_wall_sprites)
+                    and ball.side_wall_collision_counter == 0):
+                ball.change_x = ball.change_x * -1
+                ball.side_wall_collision_counter = 20
 
-        if (self.ball.collides_with_sprite(self.player)
-                and self.player_collision_counter == 0):
-            self.player_collision_counter = 20
-            self.ball.collides_with_player()
-            arcade.play_sound(self.player_sound)
+            if (ball.collides_with_list(self.top_wall_sprites)
+                    and ball.top_wall_collision_counter == 0):
+                ball.change_y = ball.change_y * -1
+                ball.top_wall_collision_counter = 20
 
-        pup = self.player.collides_with_list(self.power_ups)
-        if pup:
-            pup[0].remove_from_sprite_lists()
-            if pup[0].type == PowerUpType.EXTRA:
-                self.add_life()
-            pup[0].on_collide(self.player, self.ball)
+            if (ball.collides_with_sprite(self.player)
+                    and ball.player_collision_counter == 0):
+                ball.player_collision_counter = 20
+                ball.collides_with_player()
+                arcade.play_sound(self.player_sound)
 
-        # If ball drops below player and screen, setup from beginning
-        if self.ball.top <= 0:
+            pup = self.player.collides_with_list(self.power_ups)
+            if pup:
+                pup[0].remove_from_sprite_lists()
+                if pup[0].type == PowerUpType.EXTRA:
+                    self.add_life()
+                elif pup[0].type == PowerUpType.DISRUPT:
+                    new_ball = ball.copy()
+                    new_ball.change_x = new_ball.change_x * 0.90
+                    self.balls.append(new_ball)
+                    self.all_sprites.append(new_ball)
+                pup[0].on_collide(self.player, ball)
+
+            if ball.top <= 0:
+                ball.remove_from_sprite_lists()
+
+        if len(self.balls) <= 0:
             if len(self.extra_lives) == 0:
                 print('Game Over')
                 arcade.close_window()
             else:
                 self.lives = self.lives - 1
                 self.extra_lives.pop()
-                self.ball.set_ball()
+                ball = Ball('images/ball.png', SCALING, self.player)
+                ball.set_ball()
+                self.balls.append(ball)
+                self.all_sprites.append(ball)
                 self.player.clear_power_up()
 
     def level_completed(self):
@@ -295,7 +290,7 @@ class BrickBreaker(arcade.Window):
         self.power_ups.draw()
         self.bricks.draw()
         self.player.draw()
-        self.ball.draw()
+        self.balls.draw()
 
         # Display score
         arcade.draw_text(f'Score: {self.score}',
