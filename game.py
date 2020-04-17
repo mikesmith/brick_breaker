@@ -2,11 +2,12 @@ import arcade
 import random
 
 from constants import (SCREEN_WIDTH, SCREEN_HEIGHT, SCREEN_TITLE,
-                       SCALING, WALL_WIDTH)
+                       SCALING, WALL_WIDTH, TOP_WALL_WIDTH)
 from player import Player
 from ball import Ball
 from brick import Brick, BRICK_WIDTH, BRICK_HEIGHT
 from power_up import PowerUp, PowerUpType
+from laser import Laser, Side
 
 
 class BrickBreaker(arcade.Window):
@@ -38,6 +39,7 @@ class BrickBreaker(arcade.Window):
         self.bricks = arcade.SpriteList()
         self.extra_lives = arcade.SpriteList()
         self.power_ups = arcade.SpriteList()
+        self.lasers = arcade.SpriteList()
         self.all_sprites = arcade.SpriteList()
 
         # Load sounds
@@ -147,6 +149,8 @@ class BrickBreaker(arcade.Window):
         if symbol == arcade.key.SPACE:
             # Shoot the ball!
             self.balls[0].shoot()
+            if self.player.current_power_up == PowerUpType.LASER:
+                self.shoot_lasers()
 
         self.player.on_key_press(symbol, modifiers)
 
@@ -176,6 +180,34 @@ class BrickBreaker(arcade.Window):
         self.player.on_update(delta_time)
         self.power_ups.on_update(delta_time)
         self.balls.on_update(delta_time)
+        self.lasers.on_update(delta_time)
+
+        for laser in self.lasers:
+            bricks = laser.collides_with_list(self.bricks)
+            if bricks:
+                # Limit to one brick collision at a time
+                brick = bricks[0]
+
+                brick.hit()
+                if brick.type == 9 or brick.type == 8:
+                    arcade.play_sound(self.sbrick_sound)
+                else:
+                    arcade.play_sound(self.brick_sound)
+
+                laser.remove_from_sprite_lists()
+
+                # If brick reaches 0 hp, destroy brick and increase score
+                if brick.hit_points == 0:
+                    self.score += Brick.clrs[brick.type][1]
+                    # If enough non-gold/silver bricks have been destroyed,
+                    # drop a power up
+                    if brick.type != 9 and brick.type != 8 and self.pup_counter <= 0:
+                        self.drop_power_up(brick)
+                    else:
+                        self.pup_counter = self.pup_counter - 1
+                    brick.remove_from_sprite_lists()
+            if laser.top > self.height - TOP_WALL_WIDTH:
+                laser.remove_from_sprite_lists()
 
         for ball in self.balls:
             bricks = ball.collides_with_list(self.bricks)
@@ -279,6 +311,14 @@ class BrickBreaker(arcade.Window):
         self.extra_lives.append(life)
         self.all_sprites.append(life)
 
+    def shoot_lasers(self):
+        left_laser = Laser(Side.LEFT, self.player)
+        right_laser = Laser(Side.RIGHT, self.player)
+        self.lasers.append(left_laser)
+        self.lasers.append(right_laser)
+        self.all_sprites.append(left_laser)
+        self.all_sprites.append(right_laser)
+
     def drop_power_up(self, brick):
         """Create a new random power up.
 
@@ -302,6 +342,7 @@ class BrickBreaker(arcade.Window):
         self.extra_lives.draw()
         self.power_ups.draw()
         self.bricks.draw()
+        self.lasers.draw()
         self.player.draw()
         self.balls.draw()
 

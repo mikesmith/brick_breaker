@@ -20,6 +20,9 @@ class Player(arcade.Sprite):
         texture = arcade.load_texture('images/player_enlarged.png')
         self.append_texture(texture)
 
+        texture = arcade.load_texture('images/player_laser.png')
+        self.append_texture(texture)
+
         self.center_x = SCREEN_WIDTH / 2
         self.center_y = 50
 
@@ -105,9 +108,12 @@ class Player(arcade.Sprite):
 
     def set_power_up(self, pup):
         self.clear_power_up()
+        self.current_power_up = pup
         if pup == PowerUpType.ENLARGE:
             self.set_texture(1)
         elif pup == PowerUpType.BREAK:
             self.break_out = True
             # Allow breakout to last 10 seconds
             self.break_out_counter = 10
+        elif pup == PowerUpType.LASER:
+            self.set_texture(2)

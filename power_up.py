@@ -12,6 +12,7 @@ class PowerUpType(Enum):
     EXTRA = 'player'
     DISRUPT = 'disruption'
     BREAK = 'break_out'
+    LASER = 'laser'
 
 
 class PowerUp(arcade.Sprite):
@@ -52,4 +53,7 @@ class PowerUp(arcade.Sprite):
             player.set_power_up(self.type)
 
         elif (self.type == PowerUpType.BREAK):
+            player.set_power_up(self.type)
+
+        elif (self.type == PowerUpType.LASER):
             player.set_power_up(self.type)
