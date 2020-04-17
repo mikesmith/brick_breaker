@@ -29,7 +29,7 @@ The mechanics are based off information from [here](https://strategywiki.org/wik
 
 #### Controls
 ```
-Space: Release ball
+Space: Release ball / Shoot lasers
 Arrows (Left/Right): Move paddle left and right
 P: Pause
 Q: Quit
@@ -37,13 +37,12 @@ Q: Quit
 
 ### Not implemented (...yet)
 
-- Power Ups
 - Floating enemies
 - Increase Silver brick point value by level
 - Persisted High score
 - Animations
 - Remaining sounds
-- Remaining levels 4-33
+- Remaining levels 6-33
 
 ### Image and Sound Sources
 **Image Assets**: Mike Smith using Aseprite
