@@ -198,7 +198,10 @@ class BrickBreaker(arcade.Window):
 
                 # If brick reaches 0 hp, destroy brick and increase score
                 if brick.hit_points == 0:
-                    self.score += Brick.clrs[brick.type][1]
+                    if brick.type == 8:
+                        self.score += (Brick.clrs[brick.type][1] * 50)
+                    else:
+                        self.score += Brick.clrs[brick.type][1]
                     # If enough non-gold/silver bricks have been destroyed,
                     # drop a power up
                     if brick.type != 9 and brick.type != 8 and self.pup_counter <= 0:
@@ -224,7 +227,10 @@ class BrickBreaker(arcade.Window):
 
                 # If brick reaches 0 hp, destroy brick and increase score
                 if brick.hit_points == 0:
-                    self.score += Brick.clrs[brick.type][1]
+                    if brick.type == 8:
+                        self.score += (Brick.clrs[brick.type][1] * 50)
+                    else:
+                        self.score += Brick.clrs[brick.type][1]
                     # If enough non-gold/silver bricks have been destroyed,
                     # drop a power up
                     if brick.type != 9 and brick.type != 8 and self.pup_counter <= 0:
