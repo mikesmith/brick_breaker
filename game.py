@@ -178,6 +178,7 @@ class BrickBreaker(arcade.Window):
             return
 
         self.player.on_update(delta_time)
+        self.player.update_animation(delta_time)
         self.power_ups.on_update(delta_time)
         self.balls.on_update(delta_time)
         self.lasers.on_update(delta_time)

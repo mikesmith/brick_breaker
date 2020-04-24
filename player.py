@@ -4,6 +4,7 @@ from constants import SCREEN_WIDTH, WALL_WIDTH
 from power_up import PowerUpType
 
 MOVEMENT_SPEED = 250
+UPDATES_PER_FRAME = 10
 
 
 class Player(arcade.Sprite):
@@ -17,11 +18,19 @@ class Player(arcade.Sprite):
         """Initialize the Player sprite."""
         super().__init__(filename, scale)
 
+        # Load textures
+        self.anim_textures = []
+        for i in range(1, 8):
+            texture = arcade.load_texture(f'images/Player_animated{i}.png')
+            self.anim_textures.append(texture)
+
         texture = arcade.load_texture('images/player_enlarged.png')
         self.append_texture(texture)
 
         texture = arcade.load_texture('images/player_laser.png')
         self.append_texture(texture)
+
+        self.cur_texture = 0
 
         self.center_x = SCREEN_WIDTH / 2
         self.center_y = 50
@@ -58,6 +67,12 @@ class Player(arcade.Sprite):
             self.left_pressed = False
         elif symbol == arcade.key.RIGHT:
             self.right_pressed = False
+
+    def update_animation(self, delta_time: float = 1/60):
+        self.cur_texture += 1
+        if self.cur_texture > (len(self.anim_textures) - 1) * UPDATES_PER_FRAME:
+            self.cur_texture = 0
+        self.texture = self.anim_textures[self.cur_texture // UPDATES_PER_FRAME]
 
     def on_update(self, delta_time: float):
         """Update the positions and statuses of the player object.
