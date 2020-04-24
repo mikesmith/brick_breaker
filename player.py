@@ -4,7 +4,7 @@ from constants import SCREEN_WIDTH, WALL_WIDTH
 from power_up import PowerUpType
 
 MOVEMENT_SPEED = 250
-UPDATES_PER_FRAME = 10
+UPDATES_PER_FRAME = 20
 
 
 class Player(arcade.Sprite):
@@ -23,6 +23,11 @@ class Player(arcade.Sprite):
         for i in range(1, 8):
             texture = arcade.load_texture(f'images/Player_animated{i}.png')
             self.anim_textures.append(texture)
+
+        self.laser_anim_textures = []
+        for i in range(1,8):
+            texture = arcade.load_texture(f'images/Player_Laser_animated{i}.png')
+            self.laser_anim_textures.append(texture)
 
         texture = arcade.load_texture('images/player_enlarged.png')
         self.append_texture(texture)
@@ -70,9 +75,14 @@ class Player(arcade.Sprite):
 
     def update_animation(self, delta_time: float = 1/60):
         self.cur_texture += 1
-        if self.cur_texture > (len(self.anim_textures) - 1) * UPDATES_PER_FRAME:
-            self.cur_texture = 0
-        self.texture = self.anim_textures[self.cur_texture // UPDATES_PER_FRAME]
+        if self.current_power_up == PowerUpType.LASER:
+            if self.cur_texture >= (len(self.laser_anim_textures)) * UPDATES_PER_FRAME:
+                self.cur_texture = 0
+            self.texture = self.laser_anim_textures[self.cur_texture // UPDATES_PER_FRAME]
+        else:
+            if self.cur_texture >= (len(self.anim_textures)) * UPDATES_PER_FRAME:
+                self.cur_texture = 0
+            self.texture = self.anim_textures[self.cur_texture // UPDATES_PER_FRAME]
 
     def on_update(self, delta_time: float):
         """Update the positions and statuses of the player object.
