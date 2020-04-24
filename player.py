@@ -20,14 +20,19 @@ class Player(arcade.Sprite):
 
         # Load textures
         self.anim_textures = []
-        for i in range(1, 8):
+        for i in range(1, 9):
             texture = arcade.load_texture(f'images/Player_animated{i}.png')
             self.anim_textures.append(texture)
 
         self.laser_anim_textures = []
-        for i in range(1,8):
+        for i in range(1, 9):
             texture = arcade.load_texture(f'images/Player_Laser_animated{i}.png')
             self.laser_anim_textures.append(texture)
+
+        self.enl_anim_textures = []
+        for i in range(1, 9):
+            texture = arcade.load_texture(f'images/Player_Enl_animated{i}.png')
+            self.enl_anim_textures.append(texture)
 
         texture = arcade.load_texture('images/player_enlarged.png')
         self.append_texture(texture)
@@ -79,6 +84,10 @@ class Player(arcade.Sprite):
             if self.cur_texture >= (len(self.laser_anim_textures)) * UPDATES_PER_FRAME:
                 self.cur_texture = 0
             self.texture = self.laser_anim_textures[self.cur_texture // UPDATES_PER_FRAME]
+        elif self.current_power_up == PowerUpType.ENLARGE:
+            if self.cur_texture >= (len(self.enl_anim_textures)) * UPDATES_PER_FRAME:
+                self.cur_texture = 0
+            self.texture = self.enl_anim_textures[self.cur_texture // UPDATES_PER_FRAME]
         else:
             if self.cur_texture >= (len(self.anim_textures)) * UPDATES_PER_FRAME:
                 self.cur_texture = 0
@@ -134,11 +143,8 @@ class Player(arcade.Sprite):
     def set_power_up(self, pup):
         self.clear_power_up()
         self.current_power_up = pup
-        if pup == PowerUpType.ENLARGE:
-            self.set_texture(1)
-        elif pup == PowerUpType.BREAK:
+
+        if pup == PowerUpType.BREAK:
             self.break_out = True
             # Allow breakout to last 10 seconds
             self.break_out_counter = 10
-        elif pup == PowerUpType.LASER:
-            self.set_texture(2)
